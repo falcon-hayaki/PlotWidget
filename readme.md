@@ -1,5 +1,19 @@
+<!-- TOC -->
 
-[TOC]
+- [Plotter based on D3.js](#plotter-based-on-d3js)
+    - [Target](#target)
+    - [Usage](#usage)
+        - [Basic](#basic)
+        - [Get data from tablestore](#get-data-from-tablestore)
+    - [Parameter descriptions](#parameter-descriptions)
+        - [Scatter](#scatter)
+        - [Histogram](#histogram)
+    - [data format](#data-format)
+        - [Scatter](#scatter-1)
+        - [Histogram](#histogram-1)
+    - [Author](#author)
+
+<!-- /TOC -->
 
 # Plotter based on D3.js
 
@@ -83,7 +97,8 @@
 
 ## data format
 
-### <span id = "scatter-format">Scatter</span>
+<span id = "scatter-format"></span>
+### Scatter 
 
 > A list of lists of lenth 3
 
@@ -95,7 +110,8 @@ var data = [
 ]
 ```
 
-### <span id = "histogram-format">Histogram</span>
+<span id = "histogram-format"></span>
+### Histogram 
 
 > A list of dictionary, whose first key should be "group"
 
