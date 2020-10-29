@@ -15,10 +15,19 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
 
     // colors
     var schemeRainbow = d3.schemePaired;     // len = 12
-    var schemeBlue = d3.schemeBlues[9];     // len = 9
 
     var plotWidth = divWidth - padding.left - padding.right;
     var plotHeigh = divHeight - padding.top - padding.bottom;
+
+    // add Suspendion
+    var suspension = document.createElement("div");
+    var suspension_id = id + "_suspension";
+    suspension.setAttribute("class", "chartTooltip hidden");
+    suspension.setAttribute("id", suspension_id);
+    var sus_p = document.createElement("p");
+    sus_p.setAttribute("class", "name")
+    suspension.appendChild(sus_p);
+    div.appendChild(suspension);
 
     var x_scale = d3.scaleLinear()
         .domain([d3.min(dataset, function (d) { return d[0]; }), d3.max(dataset, function (d) { return d[0]; })])
@@ -37,11 +46,6 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
         var z_scale = d3.scaleLinear()
             .domain([d3.min(dataset, function (d) { return d[2]; }), d3.max(dataset, function (d) { return d[2]; })])
             .range(["#d9d9d9", "#0002FF"]);
-        // .range(schemeBlue);
-        // console.log(d3.min(dataset, function (d) { return d[2]; }), d3.max(dataset, function (d) { return d[2]; }))
-        // var z_scale = d3.scaleSequential(d3.interpolateRgb("#d9d9d9", "#0002FF"))
-        //     .domain([d3.min(dataset, function (d) { return d[2]; }), d3.max(dataset, function (d) { return d[2]; })])
-            // .clamp(true);
     }
 
     var x_axis = d3.axisBottom(x_scale)
@@ -68,7 +72,23 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
         .attr("fill", function (d) {
             return z_scale(d[2]);
         })
-        .attr("r", r);
+        .attr("r", r)
+        .on("mouseover", function (event, d, i) {
+            let yPosition = event.screenY - 80;
+            let xPosition = event.screenX;
+
+            var chartTooltip = d3
+                .select("#" + suspension_id)
+                .style("left", xPosition + "px")
+                .style("top", yPosition + "px")
+                .style("background-color", z_scale(d[2]));
+
+            chartTooltip.select(".name").html(d[2]);
+            chartTooltip.classed("hidden", false);
+        })
+        .on("mouseout", function (d) {
+            d3.select("#" + suspension_id).classed("hidden", true);
+        });
 
     svg.append("g")
         .attr("fill", "none")
@@ -117,7 +137,7 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
     return svg;
 }
 
-function histogramPlot({ id, dataset, transverse = false } = {}) {
+function barPlot({ id, dataset, horizontal = false } = {}) {
     var div = document.getElementById(id);
     var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
     var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
@@ -125,6 +145,171 @@ function histogramPlot({ id, dataset, transverse = false } = {}) {
 
     var plotWidth = divWidth - padding.left - padding.right;
     var plotHeigh = divHeight - padding.top - padding.bottom;
+
+    // add Suspendion
+    var suspension = document.createElement("div");
+    var suspension_id = id + "_suspension";
+    suspension.setAttribute("class", "chartTooltip hidden");
+    suspension.setAttribute("id", suspension_id);
+    var sus_p = document.createElement("p");
+    sus_p.setAttribute("class", "name")
+    suspension.appendChild(sus_p);
+    div.appendChild(suspension);
+
+    keys = [];
+    for (key in dataset[0]) {
+        keys.push(key);
+    }
+    keys.splice(keys.indexOf("group"), 1);
+    keys.splice(keys.indexOf("total"), 1);
+    groups = dataset.map(d => d["group"]);
+
+    var total = {}
+    for (i in keys) {
+        t = 0;
+        for (j in dataset) {
+            t += dataset[j][keys[i]];
+        }
+        total[keys[i]] = t
+    }
+
+    var z = d3.scaleOrdinal()
+        .domain(groups)
+        .range(d3.schemePaired);
+
+    var svg = d3.select("#" + id)
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%");
+
+    if (horizontal) {
+        var x0 = d3.scaleBand()
+            .domain(keys)
+            .rangeRound([plotHeigh, 0])
+            .padding(0.1);
+
+        svg.append("g")
+            .selectAll("g")
+            .data(keys)
+            .join("g")
+            .attr("transform", d => `translate(0, ${x0(d)})`)
+            .selectAll("rect")
+            .data(key => dataset.map(d => ({ group: d["group"], value: d[key], "key": key })))
+            .join("rect")
+            .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
+            .attr("x", function (d, i) {
+                let y = 0;
+                for (let j = 0; j < i; j++) {
+                    y += (dataset[j][d["key"]] / total[d["key"]] * plotWidth);
+                }
+                return y;
+            })
+            .attr("height", x0.bandwidth())
+            .attr("width", (d, i) => dataset[i][d["key"]] / total[d["key"]] * plotWidth)
+            .attr("fill", d => z(d.group))
+            .on("mouseover", function (event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
+
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.group));
+
+                chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"] + "; " + (d["value"] / total[d["key"]] * 100).toFixed(2) + "%");
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function (d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            })
+
+        var x_axis = d3.axisLeft(x0)
+            .ticks(7);
+
+        svg.append("g")
+            .attr("fill", "none")
+            .attr("font-family", "sans-serif")
+            .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
+            .call(x_axis);
+    } else {
+        var x0 = d3.scaleBand()
+            .domain(keys)
+            .rangeRound([0, plotWidth])
+            .padding(0.1);
+
+        svg.append("g")
+            .selectAll("g")
+            .data(keys)
+            .join("g")
+            .attr("transform", d => `translate(${x0(d)}, 0)`)
+            .selectAll("rect")
+            .data(key => dataset.map(d => ({ group: d["group"], value: d[key], "key": key })))
+            .join("rect")
+            .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
+            .attr("x", function (d) {
+                return x0(d.group);
+            })
+            .attr("y", function (d, i) {
+                let y = 0;
+                for (let j = 0; j < i; j++) {
+                    y += (dataset[j][d["key"]] / total[d["key"]] * plotHeigh);
+                }
+                return y;
+            })
+            .attr("width", x0.bandwidth())
+            .attr("height", function (d, i) {
+                return dataset[i][d["key"]] / total[d["key"]] * plotHeigh;
+            })
+            .attr("fill", d => z(d.group))
+            .on("mouseover", function (event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
+
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.group));
+
+                chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"] + "; " + (d["value"] / total[d["key"]] * 100).toFixed(2) + "%");
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function (d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            })
+
+        var x_axis = d3.axisBottom(x0)
+            .ticks(7);
+
+        svg.append("g")
+            .attr("fill", "none")
+            .attr("font-family", "sans-serif")
+            .attr("transform", "translate(" + padding.left + "," + (divHeight - padding.bottom) + ")")
+            .call(x_axis)
+    }
+
+    return svg;
+}
+
+function histogramPlot({ id, dataset, horizontal = false } = {}) {
+    var div = document.getElementById(id);
+    var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
+    var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
+    var padding = { left: 30, right: 30, top: 20, bottom: 20 };
+
+    var plotWidth = divWidth - padding.left - padding.right;
+    var plotHeigh = divHeight - padding.top - padding.bottom;
+
+    // add Suspendion
+    var suspension = document.createElement("div");
+    var suspension_id = id + "_suspension";
+    suspension.setAttribute("class", "chartTooltip hidden");
+    suspension.setAttribute("id", suspension_id);
+    var sus_p = document.createElement("p");
+    sus_p.setAttribute("class", "name")
+    suspension.appendChild(sus_p);
+    div.appendChild(suspension);
 
     keys = [];
     for (key in dataset[0]) {
@@ -142,7 +327,7 @@ function histogramPlot({ id, dataset, transverse = false } = {}) {
         .attr("width", "100%")
         .attr("height", "100%");
 
-    if (transverse) {
+    if (horizontal) {
         var x0 = d3.scaleBand()
             .domain(keys)
             .rangeRound([plotHeigh, 0])
@@ -172,7 +357,23 @@ function histogramPlot({ id, dataset, transverse = false } = {}) {
             })
             .attr("height", x1.bandwidth())
             .attr("width", d => y(d.value))
-            .attr("fill", d => z(d.group));
+            .attr("fill", d => z(d.group))
+            .on("mouseover", function (event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
+
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.group));
+
+                chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"]);
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function (d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            });
 
         var x_axis = d3.axisLeft(x0)
             .ticks(7);
@@ -219,7 +420,23 @@ function histogramPlot({ id, dataset, transverse = false } = {}) {
             })
             .attr("width", x1.bandwidth())
             .attr("height", d => plotHeigh - y(d.value))
-            .attr("fill", d => z(d.group));
+            .attr("fill", d => z(d.group))
+            .on("mouseover", function (event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
+
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.group));
+
+                chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"]);
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function (d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            });
 
         var x_axis = d3.axisBottom(x0)
             .ticks(7);
@@ -237,6 +454,107 @@ function histogramPlot({ id, dataset, transverse = false } = {}) {
             .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
             .call(y_axis);
     }
+
+    return svg;
+}
+
+function chordPlot({ id, matrix, names } = {}) {
+    var div = document.getElementById(id);
+    var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
+    var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
+    var padding = { left: 30, right: 30, top: 20, bottom: 20 };
+
+    var plotWidth = divWidth - padding.left - padding.right;
+    var plotHeigh = divHeight - padding.top - padding.bottom;
+
+    // add Suspendion
+    var suspension = document.createElement("div");
+    var suspension_id = id + "_suspension";
+    suspension.setAttribute("class", "chartTooltip hidden");
+    suspension.setAttribute("id", suspension_id);
+    var sus_p = document.createElement("p");
+    sus_p.setAttribute("class", "name")
+    suspension.appendChild(sus_p);
+    div.appendChild(suspension);
+
+    var chords = d3.chord()
+        (matrix);
+    var groups = chords.groups;
+
+    var z = d3.scaleOrdinal()
+        .domain(groups.map(d => d.index))
+        .range(d3.schemePaired);
+
+    var svg = d3.select("#" + id)
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")
+        .append("g")
+        .attr('transform', 'translate(' + plotWidth / 2 + "," + plotHeigh / 2 + ")");
+
+    // 弧生成器
+    var innerRadius = plotHeigh / 2 * 0.7;
+    var outerRadius = innerRadius * 1.05;
+    var outer_arc = d3.arc()
+        .innerRadius(innerRadius)
+        .outerRadius(outerRadius);
+
+    var g_outer = svg.append("g");
+    g_outer.selectAll("path")
+        .data(groups)
+        .enter()
+        .append("path")
+        .style("fill", d => z(d.index))
+        .style("stroke", d => {
+            return z(d.index);
+        })
+        .attr("d", outer_arc)
+        .on("mouseover", function (event, d, i) {
+            let yPosition = event.screenY - 80;
+            let xPosition = event.screenX;
+
+            var chartTooltip = d3
+                .select("#" + suspension_id)
+                .style("left", xPosition + "px")
+                .style("top", yPosition + "px")
+                .style("background-color", z(d.group));
+
+            chartTooltip.select(".name").html(names[d.index]);
+            chartTooltip.classed("hidden", false);
+        })
+        .on("mouseout", function (d) {
+            d3.select("#" + suspension_id).classed("hidden", true);
+        });
+
+    // draw chords
+    var ribbon = d3.ribbon()
+    .radius(innerRadius);
+
+    svg.append("g")
+    .attr('class', 'chord')
+    .selectAll("path")
+    .data(chords)
+    .enter()
+    .append("path")
+    .attr("d", ribbon)
+    .attr("fill", ({source:{index}}) => z(index))
+    .attr('stroke', ({ source: { index } }) => d3.rgb(z(index)).darker())
+    .on("mouseover", function (event, d, i) {
+        let yPosition = event.screenY - 80;
+        let xPosition = event.screenX;
+
+        var chartTooltip = d3
+            .select("#" + suspension_id)
+            .style("left", xPosition + "px")
+            .style("top", yPosition + "px")
+            .style("background-color", z(d.source.index));
+
+        chartTooltip.select(".name").html("Source: " + names[d.source.index] + "<br>" + "Target: " + names[d.target.index] + "<br>" + "Value: " + d.source.value + " " + d.target.value);
+        chartTooltip.classed("hidden", false);
+    })
+    .on("mouseout", function (d) {
+        d3.select("#" + suspension_id).classed("hidden", true);
+    })
 
     return svg;
 }

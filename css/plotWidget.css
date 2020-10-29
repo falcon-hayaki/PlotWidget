@@ -1,0 +1,24 @@
+.chartTooltip {
+    position: fixed;
+    width: auto;
+    height: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    z-index: 9999;
+    border-width: 2px;
+    border-color: black;
+}
+
+.chartTooltip.hidden {
+    display: none;
+}
+
+.chartTooltip.name {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 400;
+}

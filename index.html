@@ -7,35 +7,54 @@
     <script type="text/javascript" src="js/d3.js"></script>
     <script type="text/javascript" src="js/PlotWidgets.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/plotWidget.css">
     <title>PlotWidgetsDemo</title>
 </head>
 
 <body>
-    <h>This is a demo.</h>
+    <h><strong>This is a demo.</strong></h>
+    <p>Author: Falcon</p>
+    <p>Version 2.0</p>
     <h2>Scatter Plot</h2>
     <form style="font: 12px var(--sans-serif); display: flex; height: 33px; align-items: center;">
         <label style="margin-right: 1em; display: inline-flex; align-items: center;">
-            <input type="radio" name="scatter" value="cluster" style="margin-right: 0.5em;" checked> cluster
+            <input type="radio" name="scatter" value="cluster" style="margin-right: 0.5em;" onchange="update_plots()" checked> cluster
         </label>
         <label style="margin-right: 1em; display: inline-flex; align-items: center;">
-            <input type="radio" name="scatter" value="feature" style="margin-right: 0.5em;"> feature
+            <input type="radio" name="scatter" value="feature" style="margin-right: 0.5em;" onchange="update_plots()"> feature
         </label>
     </form>
     <div id="scatter" style="width:'100%'; height:400px;background-color: white;"></div>
 
+    <h2>Bar Chart</h2>
     <form style="font: 12px var(--sans-serif); display: flex; height: 33px; align-items: center;">
         <label style="margin-right: 1em; display: inline-flex; align-items: center;">
-            <input type="radio" name="histogram" value="longitudinal" style="margin-right: 0.5em;" checked> longitudinal
+            <input type="radio" name="histogram" value="vertical" style="margin-right: 0.5em;" onchange="update_plots()" checked> vertical
         </label>
         <label style="margin-right: 1em; display: inline-flex; align-items: center;">
-            <input type="radio" name="histogram" value="transverse" style="margin-right: 0.5em;"> transverse
+            <input type="radio" name="histogram" value="horizontal" style="margin-right: 0.5em;" onchange="update_plots()"> horizontal
         </label>
     </form>
     <div id="histogram" style="width:'100%'; height:800px;"></div>
 
+    <form style="font: 12px var(--sans-serif); display: flex; height: 33px; align-items: center;">
+        <label style="margin-right: 1em; display: inline-flex; align-items: center;">
+            <input type="radio" name="barplot" value="vertical" style="margin-right: 0.5em;" onchange="update_plots()" checked> vertical
+        </label>
+        <label style="margin-right: 1em; display: inline-flex; align-items: center;">
+            <input type="radio" name="barplot" value="horizontal" style="margin-right: 0.5em;" onchange="update_plots()"> horizontal
+        </label>
+    </form>
+    <div id="barplot" style="width:'100%'; height:800px;"></div>
+
+    <h2>Chord Plot</h2>
+    <div id="chordplot" style="width:'100%'; height:800px;"></div>
+
     <script>
         var random = d3.randomNormal(0, 0.2);
         var sqrt3 = Math.sqrt(3);
+        // Scatter plot data
         var data = [].concat(
             Array.from({ length: 300 }, () => [random() + sqrt3, random() + 1, "a"]),
             Array.from({ length: 300 }, () => [random() - sqrt3, random() + 1, "b"]),
@@ -43,73 +62,70 @@
         );
 
         var data_feature = [].concat(
-            Array.from({ length: 300 }, () => [random(), random(), Math.random()+6]),
-            Array.from({ length: 900 }, () => [5 * random(), 5 * random(), Math.random()+3]),
+            Array.from({ length: 300 }, () => [random(), random(), Math.random() + 6]),
+            Array.from({ length: 900 }, () => [5 * random(), 5 * random(), Math.random() + 3]),
             Array.from({ length: 2000 }, () => [20 * random(), 20 * random(), 0])
         );
 
-        // ScatterPlot test
-        var test_scatter = scatterPlot({ id: "scatter", dataset: data, r: 2, type: "cluster", legend: true });
-        // var test = scatterPlot({ id: "scatter", dataset: data_feature, r: 2, type: "feature", legend: false });
-
-        // Connect to tablestore
-        // var data_py = [];
-        // var data_post = {
-        //     conditions: "organ == Heart",
-        //     col: ["TNNI3"]
-        // };
-        // var url = "http://127.0.0.1:7777/";
-        // $.ajax({
-        //     url: url + "get_feature_data",
-        //     type: "POST",
-        //     dataType: "json",
-        //     headers: {
-        //         "Content-Type": "application/json;charset=utf-8"
-        //     },
-        //     contentType: 'application/json; charset=utf-8',
-        //     data: JSON.stringify(data_post),
-        //     success: function (data) {
-        //         if (data['data']) {
-        //             console.log(data['data']);
-        //             data_py = data['data'];
-        //             var test = scatterPlot({ id: "scatter", dataset: data_py, r: 2, type: "feature", legend: true });
-        //         }
-        //     }
-        // })
-
+        // Bar plot data
         var data_histogram = new Array();
         for (var i = 1; i <= 4; i++) {
             var group_data = { "group": "group" + i };
+            total = 0;
             for (var j = 1; j <= 20; j++) {
                 group_data["n_" + j] = Math.ceil(Math.random() * 30);
+                total += group_data["n_" + j];
             }
             data_histogram.push(group_data);
         }
+        console.log(data_histogram);
 
-        var test_histogram = histogramPlot({ id: "histogram", dataset: data_histogram, transverse: false });
+        // Chord plot data
+        var i = 0;
+        var chord_matrix = [].concat(
+            Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => {
+                i++;
+                return Math.floor((random() + 1) * 10 * i);
+            }))
+        );
+        var i = 0;
+        var chord_names = Array.from({ length: 20 }, () => {
+            i++;
+            return "n_" + i;
+        });
+        console.log(chord_matrix);
 
+
+        window.onload = function(){
+            update_plots();
+        }
+
+        window.onresize = function(){
+            update_plots();
+        }
         
-        // btn onClick event
-        $(function(){
-            $("input:radio[name='scatter']").change(function(){
-                test_scatter.remove();
-                if ($(this).val() == "feature"){
-                    test_scatter = scatterPlot({ id: "scatter", dataset: data_feature, r: 2, type: "feature", legend: true });
-                } else if ($(this).val() == "cluster"){
-                    test_scatter = scatterPlot({ id: "scatter", dataset: data, r: 2, type: "cluster", legend: true });
-                }
-            })
-        })
-        $(function(){
-            $("input:radio[name='histogram']").change(function(){
-                test_histogram.remove();
-                if ($(this).val() == "transverse"){
-                    test_histogram = histogramPlot({ id: "histogram", dataset: data_histogram, transverse: true });
-                } else if ($(this).val() == "longitudinal"){
-                    test_histogram = histogramPlot({ id: "histogram", dataset: data_histogram, transverse: false });
-                }
-            })
-        })
+        function update_plots() {
+            $("#scatter").html("");
+            if ($("input:radio[name='scatter']:checked").val() == "feature") {
+                scatterPlot({ id: "scatter", dataset: data_feature, r: 2, type: "feature", legend: true });
+            } else if ($("input:radio[name='scatter']:checked").val() == "cluster") {
+                scatterPlot({ id: "scatter", dataset: data, r: 2, type: "cluster", legend: true });
+            }
+            $("#histogram").html("");
+            if ($("input:radio[name='histogram']:checked").val() == "horizontal") {
+                histogramPlot({ id: "histogram", dataset: data_histogram, horizontal: true });
+            } else if ($("input:radio[name='histogram']:checked").val() == "vertical") {
+                histogramPlot({ id: "histogram", dataset: data_histogram, horizontal: false });
+            }
+            $("#barplot").html("");
+            if ($("input:radio[name='barplot']:checked").val() == "horizontal") {
+                barPlot({ id: "barplot", dataset: data_histogram, horizontal: true });
+            } else if ($("input:radio[name='barplot']:checked").val() == "vertical") {
+                barPlot({ id: "barplot", dataset: data_histogram, horizontal: false });
+            }
+            $("#chordplot").html("");
+            chordPlot({ id: "chordplot", matrix: chord_matrix, names: chord_names });
+        }
     </script>
 </body>
 
