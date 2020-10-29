@@ -17,12 +17,13 @@
 
 ## 用法
 
-1. 在html的`head`中引入`d3.js`和`PlotWidgets.js`。
+1. 在html的`head`中引入`d3.js`、`PlotWidgets.js`和`PlotWidgets.css`。
    
    ```html
     <head>
     <script type="text/javascript" src="js/d3.js"></script>
     <script type="text/javascript" src="js/PlotWidgets.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/plotWidget.css">
     </head>
    ```
 
