@@ -336,9 +336,15 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
             .domain(groups)
             .rangeRound([0, x0.bandwidth()])
             .paddingInner(0.05);
-        var y = d3.scaleLinear()
-            .domain([0, !height ? d3.max(dataset, d => d3.max(keys, key => d[key])) : height])
-            .range([0, plotWidth]);
+        if (!height) {
+            var y = d3.scaleLinear()
+                .domain([0, d3.max(dataset, d => d3.max(keys, key => d[key]))])
+                .range([0, plotWidth]);
+        } else {
+            var y = d3.scaleLinear()
+                .domain([0, height])
+                .range([0, plotWidth]);
+        }
 
         svg.append("g")
             .selectAll("g")
