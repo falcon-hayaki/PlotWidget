@@ -292,7 +292,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
     return svg;
 }
 
-function histogramPlot({ id, dataset, horizontal = false, yaxis = false } = {}) {
+function histogramPlot({ id, dataset, horizontal = false, height = false, hide_axis = [false, false] } = {}) {
     var div = document.getElementById(id);
     var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
     var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
@@ -337,7 +337,7 @@ function histogramPlot({ id, dataset, horizontal = false, yaxis = false } = {}) 
             .rangeRound([0, x0.bandwidth()])
             .paddingInner(0.05);
         var y = d3.scaleLinear()
-            .domain([0, !yaxis ? d3.max(dataset, d => d3.max(keys, key => d[key])) : yaxis])
+            .domain([0, !height ? d3.max(dataset, d => d3.max(keys, key => d[key])) : height])
             .range([0, plotWidth]);
 
         svg.append("g")
@@ -375,21 +375,24 @@ function histogramPlot({ id, dataset, horizontal = false, yaxis = false } = {}) 
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
-        var x_axis = d3.axisLeft(x0)
-            .ticks(7);
-        var y_axis = d3.axisBottom(y)
-            .ticks(7);
-
-        svg.append("g")
-            .attr("fill", "none")
-            .attr("font-family", "sans-serif")
-            .attr("transform", "translate(" + padding.left + "," + (divHeight - padding.bottom) + ")")
-            .call(y_axis)
-        svg.append("g")
-            .attr("fill", "none")
-            .attr("font-family", "sans-serif")
-            .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
-            .call(x_axis);
+        if (!hide_axis[0]) {
+            var x_axis = d3.axisLeft(x0)
+                .ticks(7);
+            svg.append("g")
+                .attr("fill", "none")
+                .attr("font-family", "sans-serif")
+                .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
+                .call(x_axis);
+        }
+        if (!hide_axis[1]) {
+            var y_axis = d3.axisBottom(y)
+                .ticks(7);
+            svg.append("g")
+                .attr("fill", "none")
+                .attr("font-family", "sans-serif")
+                .attr("transform", "translate(" + padding.left + "," + (divHeight - padding.bottom) + ")")
+                .call(y_axis)
+        }
     } else {
         var x0 = d3.scaleBand()
             .domain(keys)
