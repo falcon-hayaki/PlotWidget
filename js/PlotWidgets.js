@@ -408,9 +408,16 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
             .domain(groups)
             .rangeRound([0, x0.bandwidth()])
             .paddingInner(0.05);
-        var y = d3.scaleLinear()
-            .domain([0, d3.max(dataset, d => d3.max(keys, key => d[key]))])
-            .range([plotHeigh, 0]);
+
+        if (!height) {
+            var y = d3.scaleLinear()
+                .domain([0, d3.max(dataset, d => d3.max(keys, key => d[key]))])
+                .range([0, plotWidth]);
+        } else {
+            var y = d3.scaleLinear()
+                .domain([0, height])
+                .range([0, plotWidth]);
+        }
 
         svg.append("g")
             .selectAll("g")
@@ -447,123 +454,125 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
-        var x_axis = d3.axisBottom(x0)
-            .ticks(7);
-        var y_axis = d3.axisLeft(y)
-            .ticks(7);
+        if (!hide_axis[0]) {
+            var x_axis = d3.axisLeft(x0)
+                .ticks(7);
+            svg.append("g")
+                .attr("fill", "none")
+                .attr("font-family", "sans-serif")
+                .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
+                .call(x_axis);
+        }
+        if (!hide_axis[1]) {
+            var y_axis = d3.axisBottom(y)
+                .ticks(7);
+            svg.append("g")
+                .attr("fill", "none")
+                .attr("font-family", "sans-serif")
+                .attr("transform", "translate(" + padding.left + "," + (divHeight - padding.bottom) + ")")
+                .call(y_axis)
+        }
 
-        svg.append("g")
-            .attr("fill", "none")
-            .attr("font-family", "sans-serif")
-            .attr("transform", "translate(" + padding.left + "," + (divHeight - padding.bottom) + ")")
-            .call(x_axis)
-        svg.append("g")
-            .attr("fill", "none")
-            .attr("font-family", "sans-serif")
-            .attr("transform", "translate(" + padding.left + "," + (padding.top) + ")")
-            .call(y_axis);
+        return svg;
     }
 
-    return svg;
-}
+    function chordPlot({ id, matrix, names } = {}) {
+        var div = document.getElementById(id);
+        var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
+        var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
+        var padding = { left: 30, right: 30, top: 20, bottom: 20 };
 
-function chordPlot({ id, matrix, names } = {}) {
-    var div = document.getElementById(id);
-    var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
-    var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
-    var padding = { left: 30, right: 30, top: 20, bottom: 20 };
+        var plotWidth = divWidth - padding.left - padding.right;
+        var plotHeigh = divHeight - padding.top - padding.bottom;
 
-    var plotWidth = divWidth - padding.left - padding.right;
-    var plotHeigh = divHeight - padding.top - padding.bottom;
+        // add Suspendion
+        var suspension = document.createElement("div");
+        var suspension_id = id + "_suspension";
+        suspension.setAttribute("class", "chartTooltip hidden");
+        suspension.setAttribute("id", suspension_id);
+        var sus_p = document.createElement("p");
+        sus_p.setAttribute("class", "name")
+        suspension.appendChild(sus_p);
+        div.appendChild(suspension);
 
-    // add Suspendion
-    var suspension = document.createElement("div");
-    var suspension_id = id + "_suspension";
-    suspension.setAttribute("class", "chartTooltip hidden");
-    suspension.setAttribute("id", suspension_id);
-    var sus_p = document.createElement("p");
-    sus_p.setAttribute("class", "name")
-    suspension.appendChild(sus_p);
-    div.appendChild(suspension);
+        var chords = d3.chord()
+            (matrix);
+        var groups = chords.groups;
 
-    var chords = d3.chord()
-        (matrix);
-    var groups = chords.groups;
+        var z = d3.scaleOrdinal()
+            .domain(groups.map(d => d.index))
+            .range(d3.schemePaired);
 
-    var z = d3.scaleOrdinal()
-        .domain(groups.map(d => d.index))
-        .range(d3.schemePaired);
+        var svg = d3.select("#" + id)
+            .append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .append("g")
+            .attr('transform', 'translate(' + plotWidth / 2 + "," + plotHeigh / 2 + ")");
 
-    var svg = d3.select("#" + id)
-        .append("svg")
-        .attr("width", "100%")
-        .attr("height", "100%")
-        .append("g")
-        .attr('transform', 'translate(' + plotWidth / 2 + "," + plotHeigh / 2 + ")");
+        // 弧生成器
+        var innerRadius = plotHeigh / 2 * 0.7;
+        var outerRadius = innerRadius * 1.05;
+        var outer_arc = d3.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius);
 
-    // 弧生成器
-    var innerRadius = plotHeigh / 2 * 0.7;
-    var outerRadius = innerRadius * 1.05;
-    var outer_arc = d3.arc()
-        .innerRadius(innerRadius)
-        .outerRadius(outerRadius);
+        var g_outer = svg.append("g");
+        g_outer.selectAll("path")
+            .data(groups)
+            .enter()
+            .append("path")
+            .style("fill", d => z(d.index))
+            .style("stroke", d => {
+                return z(d.index);
+            })
+            .attr("d", outer_arc)
+            .on("mouseover", function(event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
 
-    var g_outer = svg.append("g");
-    g_outer.selectAll("path")
-        .data(groups)
-        .enter()
-        .append("path")
-        .style("fill", d => z(d.index))
-        .style("stroke", d => {
-            return z(d.index);
-        })
-        .attr("d", outer_arc)
-        .on("mouseover", function(event, d, i) {
-            let yPosition = event.screenY - 80;
-            let xPosition = event.screenX;
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.group));
 
-            var chartTooltip = d3
-                .select("#" + suspension_id)
-                .style("left", xPosition + "px")
-                .style("top", yPosition + "px")
-                .style("background-color", z(d.group));
+                chartTooltip.select(".name").html(names[d.index]);
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function(d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            });
 
-            chartTooltip.select(".name").html(names[d.index]);
-            chartTooltip.classed("hidden", false);
-        })
-        .on("mouseout", function(d) {
-            d3.select("#" + suspension_id).classed("hidden", true);
-        });
+        // draw chords
+        var ribbon = d3.ribbon()
+            .radius(innerRadius);
 
-    // draw chords
-    var ribbon = d3.ribbon()
-        .radius(innerRadius);
+        svg.append("g")
+            .attr('class', 'chord')
+            .selectAll("path")
+            .data(chords)
+            .enter()
+            .append("path")
+            .attr("d", ribbon)
+            .attr("fill", ({ source: { index } }) => z(index))
+            .attr('stroke', ({ source: { index } }) => d3.rgb(z(index)).darker())
+            .on("mouseover", function(event, d, i) {
+                let yPosition = event.screenY - 80;
+                let xPosition = event.screenX;
 
-    svg.append("g")
-        .attr('class', 'chord')
-        .selectAll("path")
-        .data(chords)
-        .enter()
-        .append("path")
-        .attr("d", ribbon)
-        .attr("fill", ({ source: { index } }) => z(index))
-        .attr('stroke', ({ source: { index } }) => d3.rgb(z(index)).darker())
-        .on("mouseover", function(event, d, i) {
-            let yPosition = event.screenY - 80;
-            let xPosition = event.screenX;
+                var chartTooltip = d3
+                    .select("#" + suspension_id)
+                    .style("left", xPosition + "px")
+                    .style("top", yPosition + "px")
+                    .style("background-color", z(d.source.index));
 
-            var chartTooltip = d3
-                .select("#" + suspension_id)
-                .style("left", xPosition + "px")
-                .style("top", yPosition + "px")
-                .style("background-color", z(d.source.index));
+                chartTooltip.select(".name").html("Source: " + names[d.source.index] + "<br>" + "Target: " + names[d.target.index] + "<br>" + "Value: " + d.source.value + " " + d.target.value);
+                chartTooltip.classed("hidden", false);
+            })
+            .on("mouseout", function(d) {
+                d3.select("#" + suspension_id).classed("hidden", true);
+            })
 
-            chartTooltip.select(".name").html("Source: " + names[d.source.index] + "<br>" + "Target: " + names[d.target.index] + "<br>" + "Value: " + d.source.value + " " + d.target.value);
-            chartTooltip.classed("hidden", false);
-        })
-        .on("mouseout", function(d) {
-            d3.select("#" + suspension_id).classed("hidden", true);
-        })
-
-    return svg;
-}
+        return svg;
+    }
