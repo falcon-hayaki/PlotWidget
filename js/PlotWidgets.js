@@ -14,7 +14,7 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
     }
 
     // colors
-    var schemeRainbow = d3.schemePaired;     // len = 12
+    var schemeRainbow = d3.schemePaired; // len = 12
 
     var plotWidth = divWidth - padding.left - padding.right;
     var plotHeigh = divHeight - padding.top - padding.bottom;
@@ -30,10 +30,10 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
     div.appendChild(suspension);
 
     var x_scale = d3.scaleLinear()
-        .domain([d3.min(dataset, function (d) { return d[0]; }), d3.max(dataset, function (d) { return d[0]; })])
+        .domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
         .range([0, plotWidth]);
     var y_scale = d3.scaleLinear()
-        .domain([d3.min(dataset, function (d) { return d[1]; }), d3.max(dataset, function (d) { return d[1]; })])
+        .domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
         .range([plotHeigh, 0]);
 
     if (type === 'cluster') {
@@ -44,7 +44,7 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
         dataset = dataset.sort((x, y) => (x[2] - y[2]))
 
         var z_scale = d3.scaleLinear()
-            .domain([d3.min(dataset, function (d) { return d[2]; }), d3.max(dataset, function (d) { return d[2]; })])
+            .domain([d3.min(dataset, function(d) { return d[2]; }), d3.max(dataset, function(d) { return d[2]; })])
             .range(["#d9d9d9", "#0002FF"]);
     }
 
@@ -63,17 +63,17 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
         .enter()
         .append("circle")
         .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
-        .attr("cx", function (d) {
+        .attr("cx", function(d) {
             return x_scale(d[0]);
         })
-        .attr("cy", function (d) {
+        .attr("cy", function(d) {
             return y_scale(d[1]);
         })
-        .attr("fill", function (d) {
+        .attr("fill", function(d) {
             return z_scale(d[2]);
         })
         .attr("r", r)
-        .on("mouseover", function (event, d, i) {
+        .on("mouseover", function(event, d, i) {
             let yPosition = event.screenY - 80;
             let xPosition = event.screenX;
 
@@ -86,7 +86,7 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
             chartTooltip.select(".name").html(d[2]);
             chartTooltip.classed("hidden", false);
         })
-        .on("mouseout", function (d) {
+        .on("mouseout", function(d) {
             d3.select("#" + suspension_id).classed("hidden", true);
         });
 
@@ -111,25 +111,25 @@ function scatterPlot({ id, dataset, r = 5, type = 'cluster', legend = false } = 
             .data(data_set)
             .enter()
             .append('g')
-            .attr("transform", function (d, i) {
+            .attr("transform", function(d, i) {
                 return "translate(" + i * padding.bottom * 1.5 + ",0)";
             });
 
         plot_legend.append('rect')
             .attr('width', padding.bottom / 4)
             .attr('height', padding.bottom / 4)
-            .attr("fill", function (d, i) {
+            .attr("fill", function(d, i) {
                 return z_scale(d);
             });
 
         plot_legend.append('text')
             .attr('x', padding.bottom / 4 + 5)
             .attr('y', padding.bottom / 8)
-            .attr("fill", function (d, i) {
+            .attr("fill", function(d, i) {
                 return z_scale(d);
             })
             .attr("dy", ".35em")
-            .text(function (d, i) {
+            .text(function(d, i) {
                 return d;
             });
     }
@@ -197,7 +197,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
             .data(key => dataset.map(d => ({ group: d["group"], value: d[key], "key": key })))
             .join("rect")
             .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
-            .attr("x", function (d, i) {
+            .attr("x", function(d, i) {
                 let y = 0;
                 for (let j = 0; j < i; j++) {
                     y += (dataset[j][d["key"]] / total[d["key"]] * plotWidth);
@@ -207,7 +207,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
             .attr("height", x0.bandwidth())
             .attr("width", (d, i) => dataset[i][d["key"]] / total[d["key"]] * plotWidth)
             .attr("fill", d => z(d.group))
-            .on("mouseover", function (event, d, i) {
+            .on("mouseover", function(event, d, i) {
                 let yPosition = event.screenY - 80;
                 let xPosition = event.screenX;
 
@@ -220,7 +220,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
                 chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"] + "; " + (d["value"] / total[d["key"]] * 100).toFixed(2) + "%");
                 chartTooltip.classed("hidden", false);
             })
-            .on("mouseout", function (d) {
+            .on("mouseout", function(d) {
                 d3.select("#" + suspension_id).classed("hidden", true);
             })
 
@@ -247,10 +247,10 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
             .data(key => dataset.map(d => ({ group: d["group"], value: d[key], "key": key })))
             .join("rect")
             .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
-            .attr("x", function (d) {
+            .attr("x", function(d) {
                 return x0(d.group);
             })
-            .attr("y", function (d, i) {
+            .attr("y", function(d, i) {
                 let y = 0;
                 for (let j = 0; j < i; j++) {
                     y += (dataset[j][d["key"]] / total[d["key"]] * plotHeigh);
@@ -258,11 +258,11 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
                 return y;
             })
             .attr("width", x0.bandwidth())
-            .attr("height", function (d, i) {
+            .attr("height", function(d, i) {
                 return dataset[i][d["key"]] / total[d["key"]] * plotHeigh;
             })
             .attr("fill", d => z(d.group))
-            .on("mouseover", function (event, d, i) {
+            .on("mouseover", function(event, d, i) {
                 let yPosition = event.screenY - 80;
                 let xPosition = event.screenX;
 
@@ -275,7 +275,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
                 chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"] + "; " + (d["value"] / total[d["key"]] * 100).toFixed(2) + "%");
                 chartTooltip.classed("hidden", false);
             })
-            .on("mouseout", function (d) {
+            .on("mouseout", function(d) {
                 d3.select("#" + suspension_id).classed("hidden", true);
             })
 
@@ -292,7 +292,7 @@ function barPlot({ id, dataset, horizontal = false } = {}) {
     return svg;
 }
 
-function histogramPlot({ id, dataset, horizontal = false } = {}) {
+function histogramPlot({ id, dataset, horizontal = false, yaxis = false } = {}) {
     var div = document.getElementById(id);
     var divWidth = parseInt(window.getComputedStyle(div).getPropertyValue('width'));
     var divHeight = parseInt(window.getComputedStyle(div).getPropertyValue('height'));
@@ -337,7 +337,7 @@ function histogramPlot({ id, dataset, horizontal = false } = {}) {
             .rangeRound([0, x0.bandwidth()])
             .paddingInner(0.05);
         var y = d3.scaleLinear()
-            .domain([0, d3.max(dataset, d => d3.max(keys, key => d[key]))])
+            .domain([0, !yaxis ? d3.max(dataset, d => d3.max(keys, key => d[key])) : yaxis])
             .range([0, plotWidth]);
 
         svg.append("g")
@@ -349,16 +349,16 @@ function histogramPlot({ id, dataset, horizontal = false } = {}) {
             .data(key => dataset.map(d => ({ group: d["group"], value: d[key] })))
             .join("rect")
             .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
-            .attr("x", function (d) {
+            .attr("x", function(d) {
                 return 0;
             })
-            .attr("y", function (d) {
+            .attr("y", function(d) {
                 return x1(d.group);
             })
             .attr("height", x1.bandwidth())
             .attr("width", d => y(d.value))
             .attr("fill", d => z(d.group))
-            .on("mouseover", function (event, d, i) {
+            .on("mouseover", function(event, d, i) {
                 let yPosition = event.screenY - 80;
                 let xPosition = event.screenX;
 
@@ -371,7 +371,7 @@ function histogramPlot({ id, dataset, horizontal = false } = {}) {
                 chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"]);
                 chartTooltip.classed("hidden", false);
             })
-            .on("mouseout", function (d) {
+            .on("mouseout", function(d) {
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
@@ -412,16 +412,16 @@ function histogramPlot({ id, dataset, horizontal = false } = {}) {
             .data(key => dataset.map(d => ({ group: d["group"], value: d[key] })))
             .join("rect")
             .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
-            .attr("x", function (d) {
+            .attr("x", function(d) {
                 return x1(d.group);
             })
-            .attr("y", function (d) {
+            .attr("y", function(d) {
                 return y(d.value);
             })
             .attr("width", x1.bandwidth())
             .attr("height", d => plotHeigh - y(d.value))
             .attr("fill", d => z(d.group))
-            .on("mouseover", function (event, d, i) {
+            .on("mouseover", function(event, d, i) {
                 let yPosition = event.screenY - 80;
                 let xPosition = event.screenX;
 
@@ -434,7 +434,7 @@ function histogramPlot({ id, dataset, horizontal = false } = {}) {
                 chartTooltip.select(".name").html(d["group"] + " <br> count: " + d["value"]);
                 chartTooltip.classed("hidden", false);
             })
-            .on("mouseout", function (d) {
+            .on("mouseout", function(d) {
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
@@ -509,7 +509,7 @@ function chordPlot({ id, matrix, names } = {}) {
             return z(d.index);
         })
         .attr("d", outer_arc)
-        .on("mouseover", function (event, d, i) {
+        .on("mouseover", function(event, d, i) {
             let yPosition = event.screenY - 80;
             let xPosition = event.screenX;
 
@@ -522,39 +522,39 @@ function chordPlot({ id, matrix, names } = {}) {
             chartTooltip.select(".name").html(names[d.index]);
             chartTooltip.classed("hidden", false);
         })
-        .on("mouseout", function (d) {
+        .on("mouseout", function(d) {
             d3.select("#" + suspension_id).classed("hidden", true);
         });
 
     // draw chords
     var ribbon = d3.ribbon()
-    .radius(innerRadius);
+        .radius(innerRadius);
 
     svg.append("g")
-    .attr('class', 'chord')
-    .selectAll("path")
-    .data(chords)
-    .enter()
-    .append("path")
-    .attr("d", ribbon)
-    .attr("fill", ({source:{index}}) => z(index))
-    .attr('stroke', ({ source: { index } }) => d3.rgb(z(index)).darker())
-    .on("mouseover", function (event, d, i) {
-        let yPosition = event.screenY - 80;
-        let xPosition = event.screenX;
+        .attr('class', 'chord')
+        .selectAll("path")
+        .data(chords)
+        .enter()
+        .append("path")
+        .attr("d", ribbon)
+        .attr("fill", ({ source: { index } }) => z(index))
+        .attr('stroke', ({ source: { index } }) => d3.rgb(z(index)).darker())
+        .on("mouseover", function(event, d, i) {
+            let yPosition = event.screenY - 80;
+            let xPosition = event.screenX;
 
-        var chartTooltip = d3
-            .select("#" + suspension_id)
-            .style("left", xPosition + "px")
-            .style("top", yPosition + "px")
-            .style("background-color", z(d.source.index));
+            var chartTooltip = d3
+                .select("#" + suspension_id)
+                .style("left", xPosition + "px")
+                .style("top", yPosition + "px")
+                .style("background-color", z(d.source.index));
 
-        chartTooltip.select(".name").html("Source: " + names[d.source.index] + "<br>" + "Target: " + names[d.target.index] + "<br>" + "Value: " + d.source.value + " " + d.target.value);
-        chartTooltip.classed("hidden", false);
-    })
-    .on("mouseout", function (d) {
-        d3.select("#" + suspension_id).classed("hidden", true);
-    })
+            chartTooltip.select(".name").html("Source: " + names[d.source.index] + "<br>" + "Target: " + names[d.target.index] + "<br>" + "Value: " + d.source.value + " " + d.target.value);
+            chartTooltip.classed("hidden", false);
+        })
+        .on("mouseout", function(d) {
+            d3.select("#" + suspension_id).classed("hidden", true);
+        })
 
     return svg;
 }
