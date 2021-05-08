@@ -381,9 +381,11 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
+        var y_axis = d3.axisBottom(y)
+            .ticks(7);
+        var x_axis = d3.axisLeft(x0)
+            .ticks(7);
         if (!hide_axis[0]) {
-            var x_axis = d3.axisLeft(x0)
-                .ticks(7);
             svg.append("g")
                 .attr("fill", "none")
                 .attr("font-family", "sans-serif")
@@ -391,8 +393,6 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
                 .call(x_axis);
         }
         if (!hide_axis[1]) {
-            var y_axis = d3.axisBottom(y)
-                .ticks(7);
             svg.append("g")
                 .attr("fill", "none")
                 .attr("font-family", "sans-serif")
@@ -454,9 +454,11 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
                 d3.select("#" + suspension_id).classed("hidden", true);
             });
 
+        var y_axis = d3.axisBottom(y)
+            .ticks(7);
+        var x_axis = d3.axisLeft(x0)
+            .ticks(7);
         if (!hide_axis[0]) {
-            var x_axis = d3.axisLeft(x0)
-                .ticks(7);
             svg.append("g")
                 .attr("fill", "none")
                 .attr("font-family", "sans-serif")
@@ -464,8 +466,6 @@ function histogramPlot({ id, dataset, horizontal = false, height = false, hide_a
                 .call(x_axis);
         }
         if (!hide_axis[1]) {
-            var y_axis = d3.axisBottom(y)
-                .ticks(7);
             svg.append("g")
                 .attr("fill", "none")
                 .attr("font-family", "sans-serif")
